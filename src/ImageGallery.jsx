@@ -1161,7 +1161,13 @@ export default class ImageGallery extends React.Component {
       );
     } else {
       thumbnailsComponent = thumbnails;
-      wrapperStyle = this._getThumbnailBarHeight();
+      wrapperStyle = Object.assign(
+        {},
+        this._getThumbnailBarHeight(),
+        {
+          textAlign: "center"
+        }
+      );
     }
 
     return (
