@@ -320,7 +320,7 @@ export default class ImageGallery extends React.Component {
 
   }
 
-  exitFullScreen() {
+  exitFullScreen = () => {
     if (this.state.isFullscreen) {
       if (document.exitFullscreen) {
         document.exitFullscreen();
@@ -919,6 +919,16 @@ export default class ImageGallery extends React.Component {
     );
   }
 
+  onFeaturedItemLoad = () => {
+    if (this._thumbnailsWrapper) {
+      if (this._isThumbnailHorizontal()) {
+        this.setState({thumbnailsWrapperHeight: this._thumbnailsWrapper.offsetHeight});
+      } else {
+        this.setState({thumbnailsWrapperWidth: this._thumbnailsWrapper.offsetWidth});
+      }
+    }
+  }
+
   render() {
     const {
       currentIndex,
@@ -1190,6 +1200,20 @@ export default class ImageGallery extends React.Component {
                     {thumbnailsComponent}
                   </div>
                 </div>
+                <div
+                  className='image-gallery-featured-thumbnails'
+                  style={{height: this._thumbnailsWrapper != null ? this._thumbnailsWrapper.offsetHeight + "px" : "auto"}}
+                >
+                  {
+                    this.state.isFeaturedItemActive ?
+                      <FeaturedVideoThumbnail
+                        item={this.props.featuredItem}
+                        onClick={this.exitFullScreen}
+                        onError={onThumbnailError.bind(this)}
+                        onLoad={this.onFeaturedItemLoad}
+                      /> : null
+                  }
+                </div>
               </div>
           }
           {
@@ -1203,4 +1227,44 @@ export default class ImageGallery extends React.Component {
     );
   }
 
+}
+
+
+class FeaturedVideoThumbnail extends React.Component {
+
+  defaultRender = (item, onClick, onError, onLoad) => {
+    const { thumbnailClass, thumbnail, thumbnailAlt, thumbnailLabel } = item;
+    const featuredThumbnailClass = thumbnailClass ?
+      ` ${thumbnailClass}` : '';
+
+    return (
+      <a
+        style={{height: "100%"}}
+        role='button'
+        aria-label={`Featured Item`}
+        className={
+          'image-gallery-featured-thumbnail' +
+          featuredThumbnailClass
+        }
+        onClick={onClick}>
+          <img
+            src={thumbnail}
+            alt={thumbnailAlt}
+            onError={onError}
+            onLoad={onLoad}
+            style={{height: "100%"}}/>
+          <div className='image-gallery-thumbnail-label'>
+            {thumbnailLabel}
+          </div>
+      </a>
+    );
+  }
+
+  render() {
+    const { item, onClick, onError, onLoad } = this.props;
+    const renderThumbInner = item.renderThumbInner || this.defaultRender;
+    const thumbnail = renderThumbInner(item, onClick, onError, onLoad);
+
+    return thumbnail;
+  }
 }
