@@ -299,6 +299,18 @@ $ig-transparent: rgba(0, 0, 0, 0) !default;
         display: block;
         margin-right: 0;
         padding: 0;
+        width: 100px;
+        height: auto;
+
+        @media (max-width: $ig-screen-sm-min) {
+          width: 75px;
+          height: auto;
+        }
+
+        img {
+          width: auto;
+          height: auto;
+        }
       }
     }
   }
@@ -330,28 +342,38 @@ $ig-transparent: rgba(0, 0, 0, 0) !default;
 
   .image-gallery-thumbnails-container {
     cursor: pointer;
-    text-align: center;
     transition: transform .45s ease-out;
     white-space: nowrap;
   }
 
 }
 
+.image-gallery-featured-thumbnails {
+  padding: 5px 0;
+
+  @media (max-width: $ig-screen-sm-min) {
+    padding: 3px 0;
+  }
+
+}
+
 .image-gallery-thumbnail {
   display: inline-block;
-  margin-right: 5px;
   border: 4px solid transparent;
   transition: border .3s ease-out;
-  width: 100px;
 
   @media (max-width: $ig-screen-sm-min) {
     border: 3px solid transparent;
-    width: 75px;
   }
 
   img {
     vertical-align: middle;
-    width: 100%;
+    height: 60px;
+    width: auto;
+
+    @media (max-width: $ig-screen-sm-min) {
+      height: 48px;
+    }
   }
 
   &.active {
@@ -360,6 +382,23 @@ $ig-transparent: rgba(0, 0, 0, 0) !default;
     @media (max-width: $ig-screen-sm-min) {
       border: 3px solid $ig-blue;
     }
+  }
+}
+.image-gallery-thumbnail:not(:last-child) {
+  margin-right: 5px;
+}
+
+.image-gallery-featured-thumbnail {
+  display: inline-block;
+  border: 4px solid transparent;
+
+  @media (max-width: $ig-screen-sm-min) {
+    border: 3px solid transparent;
+  }
+
+  img {
+    width: auto;
+    max-width: none;
   }
 }
 

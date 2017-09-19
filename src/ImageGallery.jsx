@@ -14,6 +14,22 @@ export default class ImageGallery extends React.Component {
 
   constructor(props) {
     super(props);
+
+    const {
+      items,
+      featuredItem,
+      minItemsPerLine,
+      multilineThumbnailsLayout,
+      thumbnailPosition
+    } = this.props;
+
+    const isMultilineLayoutActive = multilineThumbnailsLayout &&
+      items.length >= minItemsPerLine * 2 &&
+      (thumbnailPosition === 'bottom' || thumbnailPosition === 'top');
+
+    const isFeaturedItemActive = featuredItem != null &&
+      (thumbnailPosition === 'bottom' || thumbnailPosition === 'top');
+
     this.state = {
       currentIndex: props.startIndex,
       thumbsTranslate: 0,
@@ -22,7 +38,9 @@ export default class ImageGallery extends React.Component {
       thumbnailsWrapperWidth: 0,
       thumbnailsWrapperHeight: 0,
       isFullscreen: false,
-      isPlaying: false
+      isPlaying: false,
+      isMultilineLayoutActive,
+      isFeaturedItemActive
     };
 
     if (props.lazyLoad) {
@@ -36,10 +54,13 @@ export default class ImageGallery extends React.Component {
 
   static propTypes = {
     items: React.PropTypes.array.isRequired,
+    featuredItem: React.PropTypes.object,
     showNav: React.PropTypes.bool,
     autoPlay: React.PropTypes.bool,
     lazyLoad: React.PropTypes.bool,
     infinite: React.PropTypes.bool,
+    minItemsPerLine: React.PropTypes.number,
+    multilineThumbnailsLayout: React.PropTypes.bool,
     showIndex: React.PropTypes.bool,
     showBullets: React.PropTypes.bool,
     showThumbnails: React.PropTypes.bool,
@@ -73,10 +94,13 @@ export default class ImageGallery extends React.Component {
 
   static defaultProps = {
     items: [],
+    featuredItem: {},
     showNav: true,
     autoPlay: false,
     lazyLoad: false,
     infinite: true,
+    minItemsPerLine: 3,
+    multilineThumbnailsLayout: false,
     showIndex: false,
     showBullets: false,
     showThumbnails: true,
@@ -138,6 +162,14 @@ export default class ImageGallery extends React.Component {
   };
 
   componentWillReceiveProps(nextProps) {
+    const {
+      items,
+      featuredItem,
+      minItemsPerLine,
+      multilineThumbnailsLayout,
+      thumbnailPosition
+    } = nextProps;
+
     if (this.props.disableArrowKeys !== nextProps.disableArrowKeys) {
       if (nextProps.disableArrowKeys) {
         window.removeEventListener('keydown', this._handleKeyDown);
@@ -151,6 +183,18 @@ export default class ImageGallery extends React.Component {
       this._lazyLoaded = [];
       this._lazyLoadedThumbnails = [];
     }
+
+    const isMultilineLayoutActive = multilineThumbnailsLayout &&
+      items.length >= minItemsPerLine * 2 &&
+      (thumbnailPosition === 'bottom' || thumbnailPosition === 'top');
+
+    const isFeaturedItemActive = featuredItem != null &&
+      (thumbnailPosition === 'bottom' || thumbnailPosition === 'top');
+
+    this.setState({
+      isMultilineLayoutActive,
+      isFeaturedItemActive
+    });
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -390,7 +434,12 @@ export default class ImageGallery extends React.Component {
 
       // adjust thumbnail container when thumbnail width or height is adjusted
       if (this.state.currentIndex > 0) {
-        this._setThumbsTranslate(-this._getThumbsTranslate(this.state.currentIndex));
+        const index = this.state.isMultilineLayoutActive ?
+          this._getImageColumnByIndex(this.props.items, this.state.currentIndex) :
+          this.state.currentIndex;
+        const maxRowSize = this.state.isMultilineLayoutActive ?
+          Math.ceil(this.props.items.length / 2) : this.props.items.length;
+        this._setThumbsTranslate(-this._getThumbsTranslate(maxRowSize, index));
       }
 
       if (this._imageGallerySlideWrapper) {
@@ -528,14 +577,27 @@ export default class ImageGallery extends React.Component {
     if (this.state.currentIndex === 0) {
       this._setThumbsTranslate(0);
     } else {
-      let indexDifference = Math.abs(
-        prevState.currentIndex - this.state.currentIndex);
-      let scroll = this._getThumbsTranslate(indexDifference);
+      const oldIndexColumn = this._getImageColumnByIndex(this.props.items, prevState.currentIndex);
+      const newIndexColumn = this._getImageColumnByIndex(this.props.items, this.state.currentIndex);
+
+      const indexDifference = this.state.isMultilineLayoutActive ?
+        Math.abs(oldIndexColumn - newIndexColumn) :
+        Math.abs(prevState.currentIndex - this.state.currentIndex);
+
+      const maxRowSize = this.state.isMultilineLayoutActive ?
+        Math.ceil(this.props.items.length / 2) : this.props.items.length;
+
+      const direction = this.state.isMultilineLayoutActive ?
+        oldIndexColumn < newIndexColumn ? "forward" : oldIndexColumn > newIndexColumn ? "backward" : "none" :
+        prevState.currentIndex < this.state.currentIndex ? "forward" : prevState.currentIndex > this.state.currentIndex ? "backward" : "none";
+
+      const scroll = this._getThumbsTranslate(maxRowSize, indexDifference);
+
       if (scroll > 0) {
-        if (prevState.currentIndex < this.state.currentIndex) {
+        if (direction === "forward") {
           this._setThumbsTranslate(
             this.state.thumbsTranslate - scroll);
-        } else if (prevState.currentIndex > this.state.currentIndex) {
+        } else if (direction === "backward") {
           this._setThumbsTranslate(
             this.state.thumbsTranslate + scroll);
         }
@@ -547,7 +609,12 @@ export default class ImageGallery extends React.Component {
     this.setState({thumbsTranslate});
   }
 
-  _getThumbsTranslate(indexDifference) {
+  _getImageColumnByIndex(items, index) {
+    const firstRowCount = Math.ceil(items.length / 2);
+    return index < firstRowCount ? index : index - firstRowCount;
+  }
+
+  _getThumbsTranslate(itemsPerRow, indexDifference) {
     if (this.props.disableThumbnailScroll) {
       return 0;
     }
@@ -555,7 +622,7 @@ export default class ImageGallery extends React.Component {
     const totalScroll = this._getThumbnailsTotalScrollSize();
 
     if (this._thumbnails) {
-      const totalThumbnails = this._thumbnails.children.length;
+      const totalThumbnails = itemsPerRow;
       // scroll-x required per index change
       const perIndexScroll = totalScroll / (totalThumbnails - 1);
 
@@ -577,9 +644,9 @@ export default class ImageGallery extends React.Component {
       }
 
       const totalScroll = this._getThumbnailsTotalScrollSize();
-      const totalThumbnails = this._thumbnails.children.length;
+      const totalThumbnails = this.props.items.length;
       // if all thumbnails are visible
-      if (totalScroll === 0) {
+      if (this.state.isMultilineLayoutActive || totalScroll === 0) {
         return {
           min: 0,
           max: totalThumbnails - 1
@@ -635,20 +702,18 @@ export default class ImageGallery extends React.Component {
   }
 
   _getThumbnailsTotalScrollSize() {
-    const {thumbnailsWrapperWidth, thumbnailsWrapperHeight} = this.state;
-
     if (this._thumbnails) {
       // total scroll required to see the last thumbnail
       if (this._isThumbnailHorizontal()) {
-        if (this._thumbnails.scrollHeight <= thumbnailsWrapperHeight) {
+        if (this._thumbnails.scrollHeight <= this._thumbnailsWrapper.offsetHeight) {
           return 0;
         }
-        return this._thumbnails.scrollHeight - thumbnailsWrapperHeight;
+        return this._thumbnails.scrollHeight - this._thumbnailsWrapper.offsetHeight;
       } else {
-        if (this._thumbnails.scrollWidth <= thumbnailsWrapperWidth) {
+        if (this._thumbnails.scrollWidth <= this._thumbnailsWrapper.offsetWidth) {
           return 0;
         }
-        return this._thumbnails.scrollWidth - thumbnailsWrapperWidth;
+        return this._thumbnails.scrollWidth - this._thumbnailsWrapper.offsetWidth;
       }
     }
     return 0;
@@ -1056,6 +1121,39 @@ export default class ImageGallery extends React.Component {
       </div>
     );
 
+    let onThumbnailError = this._handleImageError;
+    if (this.props.onThumbnailError) {
+      onThumbnailError = this.props.onThumbnailError;
+    }
+
+    let justifyContent = "center";
+    if (this.state.isFeaturedItemActive) {
+      justifyContent = "space-between";
+    }
+
+    let thumbnailsComponent = null;
+    let wrapperStyle = {};
+    if (this.state.isMultilineLayoutActive) {
+      thumbnailsComponent = (
+        <div>
+          <div>{thumbnails.slice(0, Math.ceil(thumbnails.length / 2))}</div>
+          <div>{thumbnails.slice(Math.ceil(thumbnails.length / 2))}</div>
+        </div>
+      );
+      wrapperStyle = Object.assign(
+        {},
+        this._getThumbnailBarHeight(),
+        {
+          display: "flex",
+          alignItems: "flex-start",
+          justifyContent: justifyContent
+        }
+      );
+    } else {
+      thumbnailsComponent = thumbnails;
+      wrapperStyle = this._getThumbnailBarHeight();
+    }
+
     return (
       <section
         ref={i => this._imageGallery = i}
@@ -1076,7 +1174,7 @@ export default class ImageGallery extends React.Component {
             this.props.showThumbnails &&
               <div
                 className={`image-gallery-thumbnails-wrapper ${thumbnailPosition}`}
-                style={this._getThumbnailBarHeight()}
+                style={wrapperStyle}
               >
                 <div
                   className='image-gallery-thumbnails'
@@ -1089,7 +1187,7 @@ export default class ImageGallery extends React.Component {
                     role='navigation'
                     aria-label='Thumbnail Navigation'
                   >
-                    {thumbnails}
+                    {thumbnailsComponent}
                   </div>
                 </div>
               </div>
