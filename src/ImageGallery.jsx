@@ -24,7 +24,7 @@ export default class ImageGallery extends React.Component {
     } = this.props;
 
     const isMultilineLayoutActive = multilineThumbnailsLayout &&
-      items.length >= minItemsPerLine * 2 &&
+      (items.length >= minItemsPerLine * 2 || featuredItem != null) &&
       (thumbnailPosition === 'bottom' || thumbnailPosition === 'top');
 
     const isFeaturedItemActive = featuredItem != null &&
@@ -185,7 +185,7 @@ export default class ImageGallery extends React.Component {
     }
 
     const isMultilineLayoutActive = multilineThumbnailsLayout &&
-      items.length >= minItemsPerLine * 2 &&
+      (items.length >= minItemsPerLine * 2 || featuredItem != null) &&
       (thumbnailPosition === 'bottom' || thumbnailPosition === 'top');
 
     const isFeaturedItemActive = featuredItem != null &&
