@@ -357,6 +357,36 @@ $ig-transparent: rgba(0, 0, 0, 0) !default;
 
 }
 
+#image-gallery .image-gallery-thumbnails-wrapper {
+
+  &__multi-line {
+    .image-gallery-thumbnail {
+      img {
+        height: 60px;
+        width: auto;
+
+        @media (max-width: $ig-screen-sm-min) {
+          height: 48px;
+        }
+      }
+    }
+  }
+
+  &__single-line {
+    .image-gallery-thumbnail {
+      width: 120px;
+
+      @media (max-width: $ig-screen-sm-min) {
+        width: 85px;
+      }
+
+      img {
+        width: 100%;
+      }
+    }
+  }
+}
+
 #image-gallery .image-gallery-thumbnail {
   display: inline-block;
   border: 4px solid transparent;
@@ -368,12 +398,6 @@ $ig-transparent: rgba(0, 0, 0, 0) !default;
 
   img {
     vertical-align: middle;
-    height: 60px;
-    width: auto;
-
-    @media (max-width: $ig-screen-sm-min) {
-      height: 48px;
-    }
   }
 
   &.active {

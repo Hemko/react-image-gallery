@@ -24,7 +24,7 @@ export default class ImageGallery extends React.Component {
     } = this.props;
 
     const isMultilineLayoutActive = multilineThumbnailsLayout &&
-      (items.length >= minItemsPerLine * 2 || featuredItem != null) &&
+      items.length >= minItemsPerLine * 2 &&
       (thumbnailPosition === 'bottom' || thumbnailPosition === 'top');
 
     const isFeaturedItemActive = featuredItem != null &&
@@ -185,7 +185,7 @@ export default class ImageGallery extends React.Component {
     }
 
     const isMultilineLayoutActive = multilineThumbnailsLayout &&
-      (items.length >= minItemsPerLine * 2 || featuredItem != null) &&
+      items.length >= minItemsPerLine * 2 &&
       (thumbnailPosition === 'bottom' || thumbnailPosition === 'top');
 
     const isFeaturedItemActive = featuredItem != null &&
@@ -936,6 +936,9 @@ export default class ImageGallery extends React.Component {
       modalFullscreen,
       isPlaying
     } = this.state;
+    const {
+      featuredItem
+    } = this.props;
 
     const thumbnailStyle = this._getThumbnailStyle();
     const thumbnailPosition = this.props.thumbnailPosition;
@@ -1142,8 +1145,10 @@ export default class ImageGallery extends React.Component {
     }
 
     let thumbnailsComponent = null;
+    let wrapperType = "";
     let wrapperStyle = {};
     if (this.state.isMultilineLayoutActive) {
+      wrapperType = "multi-line";
       thumbnailsComponent = (
         <div>
           <div>{thumbnails.slice(0, Math.ceil(thumbnails.length / 2))}</div>
@@ -1161,10 +1166,14 @@ export default class ImageGallery extends React.Component {
       );
     } else {
       thumbnailsComponent = thumbnails;
+      wrapperType = "single-line";
       wrapperStyle = Object.assign(
         {},
         this._getThumbnailBarHeight(),
-        {
+        featuredItem != null ? {
+          display: "flex",
+          justifyContent: "space-between"
+        } : {
           textAlign: "center"
         }
       );
@@ -1190,7 +1199,7 @@ export default class ImageGallery extends React.Component {
           {
             this.props.showThumbnails &&
               <div
-                className={`image-gallery-thumbnails-wrapper ${thumbnailPosition}`}
+                className={`image-gallery-thumbnails-wrapper image-gallery-thumbnails-wrapper__${wrapperType} ${thumbnailPosition}`}
                 style={wrapperStyle}
               >
                 <div
