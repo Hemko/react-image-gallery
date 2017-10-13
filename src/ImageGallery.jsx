@@ -1255,7 +1255,6 @@ class FeaturedVideoThumbnail extends React.Component {
 
     return (
       <a
-        style={{height: "100%"}}
         role='button'
         aria-label={`Featured Item`}
         className={
@@ -1268,7 +1267,7 @@ class FeaturedVideoThumbnail extends React.Component {
             alt={thumbnailAlt}
             onError={onError}
             onLoad={onLoad}
-            style={{height: "100%"}}/>
+          />
           <div className='image-gallery-thumbnail-label'>
             {thumbnailLabel}
           </div>

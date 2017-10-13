@@ -198,7 +198,7 @@ $ig-transparent: rgba(0, 0, 0, 0) !default;
   white-space: nowrap;
 }
 
-#image-gallery .image-gallery-slide {
+.image-gallery-slide {
   background: $ig-white;
   left: 0;
   position: absolute;
@@ -370,10 +370,21 @@ $ig-transparent: rgba(0, 0, 0, 0) !default;
         }
       }
     }
+    .image-gallery-featured-thumbnail {
+      img {
+        height: 128px;
+        width: auto;
+
+        @media (max-width: $ig-screen-sm-min) {
+          height: 102px;
+        }
+      }
+    }
   }
 
   &__single-line {
-    .image-gallery-thumbnail {
+    .image-gallery-thumbnail,
+    .image-gallery-featured-thumbnail {
       width: 120px;
 
       @media (max-width: $ig-screen-sm-min) {
