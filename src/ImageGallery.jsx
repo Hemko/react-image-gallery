@@ -1184,7 +1184,7 @@ export default class ImageGallery extends React.Component {
         ref={i => this._imageGallery = i}
         id='image-gallery'
         className={
-          `image-gallery${modalFullscreen ? ' fullscreen-modal' : ''}`}
+          `image-gallery${modalFullscreen ? ' fullscreen-modal' : ''} ${isFullscreen ? 'is-fullscreen' : ''}`}
         aria-live='polite'
       >
 
